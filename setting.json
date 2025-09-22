@@ -1,10 +1,15 @@
 {
     "首次启动": "否",
     "代理端口": "7890",
-    "使用chromium": "是",
+    "使用chromium": "否",
     "chromium路径": "chrome-win/chrome.exe",
-    "artemis_api":["deeponer","otogi_f_r","angelica_r"],
+    "artemis_api":["deeponer","otogi_f_r","angelica_r","tenshoku_maoux","minashigo_x","lilyange","crimson_youmataisen_x"],
     "游戏列表": [
+
+        [
+            "莉莉天使",
+            "lilyange"
+        ],
         [
             "DeepOne",
             "deeponer"
@@ -18,8 +23,8 @@
             "cravesagax"
         ],
         [
-            "迷雾列车少女",
-            "MistTrainGirlsX"
+            "妖魔大战",
+            "crimson_youmataisen_x"
         ],
         [
             "妖怪大乱斗",

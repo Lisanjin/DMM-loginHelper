@@ -303,8 +303,6 @@ https://github.com/Lisanjin/DMM-loginhelper
             self.account_combo.addItem(account['email'])
 
         self.account_combo.setFixedWidth(200)
-          
-
         # 创建游戏列表下拉框
         self.game_combo = QComboBox()
         for game_name in self.setting.game_list:
@@ -314,6 +312,8 @@ https://github.com/Lisanjin/DMM-loginhelper
                 self.game_combo.addItem(game_name[1])
 
         self.game_combo.setFixedWidth(200)
+        self.account_combo.currentIndexChanged.connect(self.on_account_changed)
+        self.on_account_changed(self.account_combo.currentIndex())
         
         self.start_button = QPushButton('启动')
         self.start_button.clicked.connect(self.start_game_thread)
@@ -361,6 +361,24 @@ https://github.com/Lisanjin/DMM-loginhelper
     def message(self):
         pass
 
+    def on_account_changed(self, index):
+        """根据当前账号的 last_game 设置 game_combo 的选中项"""
+        if index < 0 or index >= len(self.setting.account):
+            return
+        account = self.setting.account[index]
+        last_game = account.get('last_game', '')
+        if not last_game:
+            return
+        # 尝试找到 game_list 中与 last_game 对应的条目（匹配第二项 game id 或第一项显示名）
+        for i, game in enumerate(self.setting.game_list):
+            game_id = game[1] if len(game) > 1 else ''
+            game_name = game[0] if len(game) > 0 else ''
+            if last_game == game_id or last_game == game_name:
+                # 找到后设置 game_combo 的索引
+                if i < self.game_combo.count():
+                    self.game_combo.setCurrentIndex(i)
+                return
+
     def add_account(self):
         dialog = AddWindow(self)
         result = dialog.exec_()  # 显示对话框
@@ -375,7 +393,10 @@ https://github.com/Lisanjin/DMM-loginhelper
                 self.account_combo.addItem(account['email'])
 
             self.account_combo.setFixedWidth(200)
-
+            # 重新连接信号以保持功能
+            self.account_combo.currentIndexChanged.connect(self.on_account_changed)
+            # 触发一次以同步新选中项
+            self.on_account_changed(self.account_combo.currentIndex())
             self.left_layout.insertWidget(0, self.account_combo)
 
 
@@ -397,8 +418,9 @@ https://github.com/Lisanjin/DMM-loginhelper
             self.account_combo.addItem(account['email'])
 
         self.account_combo.setFixedWidth(200)
-
-        self.left_layout.insertWidget(0, self.account_combo)
+        # 重新连接信号
+        self.account_combo.currentIndexChanged.connect(self.on_account_changed)
+        self.on_account_changed(self.account_combo.currentIndex())
 
 
     def start_game_thread(self):
@@ -432,17 +454,23 @@ https://github.com/Lisanjin/DMM-loginhelper
         try:
             DG = DMMGame(current_account, password,proxies_port)
 
-            if current_game in self.setting.artemis_api:
-                cookie = DG.fanza_login_get_token(current_game)
-                print(cookie)
-                url = getST(cookie,proxies={
-                            'http': 'http://127.0.0.1:'+proxies_port,
-                            'https': 'http://127.0.0.1:'+proxies_port,
-                        },target=current_game)
-            else:
-                url = DG.fanza_login(current_game)
+            # if current_game in self.setting.artemis_api:
+            cookie = DG.fanza_login_get_token(current_game)
+            print(cookie)
+            url = getST(cookie,proxies={
+                        'http': 'http://127.0.0.1:'+proxies_port,
+                        'https': 'http://127.0.0.1:'+proxies_port,
+                    },target=current_game)
+            # else:
+            #     url = DG.fanza_login(current_game)
 
             print("url:",url)
+
+            # 启动前更新该账号的 last_game 并写回文件
+            for account in self.setting.account:
+                if account['email'] == current_account:
+                    account['last_game'] = current_game
+            self.updata_account(self.setting.account)
 
             if self.setting.use_chromium:
                 chromium_path = self.setting.chromium_path
@@ -500,7 +528,7 @@ class AddWindow(QDialog):
         email_text = self.email_edit.text()
         password_text = self.password_edit.text()
         
-        new_data={'email':email_text,"password":password_text}
+        new_data={'email':email_text,"password":password_text,"last_game":"deeponer"}
         new_account_list = self.mainwindow.setting.account
         new_account_list.append(new_data)
         self.mainwindow.updata_account(new_account_list)
@@ -523,4 +551,4 @@ if __name__ == '__main__':
     main_window.show() 
     sys.exit(app.exec_())
 
-#nuitka --mingw64 --standalone --onefile --show-progress --windows-disable-console --plugin-enable=pyqt5 --include-package-data=qt_material --windows-icon-from-ico=furau.ico --output-filename=大咪咪多号登录.exe DMM.py
+#nuitka --mingw64 --standalone --onefile --show-progress --windows-disable-console --plugin-enable=pyqt5 --include-package-data=qt_material --windows-icon-from-ico=furau.ico --output-filename=DMM多号登录.exe DMM.py

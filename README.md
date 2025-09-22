@@ -30,3 +30,7 @@ https://github.com/Lisanjin/DMM-loginhelper
 `2024.12.11` 
 新游戏angelica aster也用了artemis这个api获取st，估计以后会越来越多，在设置里添加了对使用artemis api游戏的处理
 目前我已知的就的deepone、童话、angelica这三款，如果还有其他的，请自行添加到setting的artemis_api列表
+
+`2025.09.22`
+dmm上的游戏应该已经全部改成了artemis这个api获取st，所以移除了老的登录方式。原来的代码依然保留，只是注释掉了。
+添加了一个记忆账号上次启动游戏的功能。
